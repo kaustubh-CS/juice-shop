@@ -3,7 +3,7 @@ name: AI Code Review on PR
 on:
   pull_request:
     branches:
-      - main
+      - master
 
 permissions:
   contents: read
@@ -27,6 +27,13 @@ jobs:
         repository: kaustubh-CS/LLM-Integration  # Change to your actual GitHub username and LLM testing repo
         path: LLM-Integration
 
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: eu-north-1
+    
     - name: Run AI Code Review from LLM Integration repo
       run: |
         python3 LLM-Integration/ai_code_review.py ${{ github.workspace }} ${{ secrets.SAGEMAKER_ENDPOINT_URL }}
