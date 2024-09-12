@@ -1,0 +1,39 @@
+name: AI Code Review on PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pull-requests: write  # Needed to comment on the PR
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub provides this secret automatically
+  SAGEMAKER_ENDPOINT: ${{ secrets.SAGEMAKER_ENDPOINT_URL }}  # Add this in your repo secrets
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Clone LLM Integration Repo (with AI script)
+      uses: actions/checkout@v4
+      with:
+        repository: kaustubh-CS/LLM-Integration  # Change to your actual GitHub username and LLM testing repo
+        path: LLM-Integration
+
+    - name: Run AI Code Review from LLM Integration repo
+      run: |
+        python3 LLM-Integration/ai_code_review.py ${{ github.workspace }} ${{ secrets.SAGEMAKER_ENDPOINT_URL }}
+
+    - name: Post review comment on PR
+      run: |
+        REVIEW_RESULTS=$(cat ./results/review_report.txt)
+        gh pr comment ${{ github.event.pull_request.number }} --body "$REVIEW_RESULTS"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
